@@ -36,7 +36,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. デザインCSS（かるた札風カードスタイル）
+# 3. デザインCSS（リアルなかるた札の縦横比・配置制御）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -53,7 +53,7 @@ st.markdown(
     .block-container {
         padding-top: 0rem !important;
         padding-bottom: 2rem !important;
-        max-width: 950px !important;
+        max-width: 850px !important;
     }
     
     /* スタート画面：掛け軸の高さを回避するためのスペース */
@@ -95,18 +95,18 @@ st.markdown(
         border: 4px solid #8b261d;
         border-radius: 12px;
         padding: 20px;
-        margin-top: 20px;
-        margin-bottom: 15px;
+        margin-top: 15px;
+        margin-bottom: 25px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         text-align: center;
         color: #2b2b2b;
     }
     .yomifuda-title {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         color: #8b261d;
         font-weight: bold;
         letter-spacing: 2px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
     .yomifuda-text {
         font-size: 1.8rem;
@@ -119,15 +119,24 @@ st.markdown(
         padding-bottom: 2px;
     }
 
-    /* 🎴 かるた取り札風ボタン（縦書き・和風デザイン） */
+    /* 🎴 かるた取り札コンテナ（中央寄せ） */
+    .stColumn > div {
+        display: flex !important;
+        justify-content: center !important;
+    }
+
+    /* 🎴 かるた取り札風ボタン（適正な長方形サイズ & 和風デザイン） */
     div.stButton > button {
-        background-color: #fdfbf7 !important;
-        color: #1a1a1a !important;
-        /* 緑の二重線でかるた札の黒塗枠・畳縁風を再現 */
-        border: 6px double #2c4c3b !important;
-        border-radius: 6px !important;
-        height: 160px !important;
-        width: 100% !important;
+        background-color: #faf6ed !important;
+        color: #111111 !important;
+        
+        /* 札のフチ（緑の二重線で畳縁・かるたの外枠を再現） */
+        border: 5px double #2c4c3b !important;
+        border-radius: 4px !important;
+        
+        /* リアルなかるた札の縦横比（約 1:1.35） */
+        width: 140px !important;
+        height: 190px !important;
         
         /* 縦書き配置 */
         writing-mode: vertical-rl !important;
@@ -135,21 +144,20 @@ st.markdown(
         
         font-size: 1.8rem !important;
         font-weight: bold !important;
-        letter-spacing: 6px !important;
+        letter-spacing: 8px !important;
         
-        box-shadow: 3px 6px 12px rgba(0, 0, 0, 0.35) !important;
+        /* 陰影効果（畳の上に置かれているような立体感） */
+        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.4) !important;
         transition: all 0.2s ease-in-out !important;
         
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        margin: 8px 0 !important;
+        margin: 12px auto !important;
+        padding: 10px 0 !important;
     }
 
-    /* 取り札ホバー時の演出（札が持ち上がり朱色フチに変化） */
+    /* 取り札ホバー時（札を持ち上げるような演出） */
     div.stButton > button:hover {
-        transform: translateY(-6px) rotate(-1deg) scale(1.03) !important;
-        box-shadow: 6px 12px 18px rgba(0, 0, 0, 0.45) !important;
+        transform: translateY(-8px) scale(1.04) !important;
+        box-shadow: 0px 14px 20px rgba(0, 0, 0, 0.5) !important;
         background-color: #fffdf5 !important;
         border-color: #8b261d !important;
         color: #8b261d !important;
@@ -434,7 +442,7 @@ elif st.session_state.game_state == "playing":
         unsafe_allow_html=True,
     )
 
-    # 4枚のかるた札を配置（2×2レイアウト）
+    # 4枚のかるた札を2×2で配置
     col_a, col_b = st.columns(2)
     cards = [
         (col_a, "格助詞"),
@@ -445,7 +453,6 @@ elif st.session_state.game_state == "playing":
 
     for col, opt_name in cards:
         with col:
-            # 縦書きでかるた札風に表示（絵文字は取り除いて文字を大きく）
             if st.button(opt_name, key=f"karuta_{opt_name}"):
                 if opt_name == q["answer"]:
                     st.success(f"🎉 お見事！ 「{opt_name}」を取った！")
