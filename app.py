@@ -36,7 +36,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. デザインCSS（タブレット・札サイズ最適化）
+# 3. デザインCSS（文字サイズ超拡大・タブレット最適化）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -141,7 +141,7 @@ st.markdown(
         padding-bottom: 2px;
     }
 
-    /* 🎴 かるた取り札風ボタン */
+    /* 🎴 かるた取り札風ボタン（文字拡大版） */
     div.stButton {
         display: flex !important;
         justify-content: center !important;
@@ -150,23 +150,24 @@ st.markdown(
         background-color: #faf6ed !important;
         color: #111111 !important;
         border: 5px double #2c4c3b !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
         
-        /* 幅と高さを固定して崩れを防止 */
-        width: 160px !important;
-        height: 210px !important;
+        /* 札の枠サイズ設定 */
+        width: 170px !important;
+        height: 220px !important;
         
         writing-mode: vertical-rl !important;
         text-orientation: upright !important;
         
-        font-size: 2.2rem !important;
-        font-weight: bold !important;
-        letter-spacing: 8px !important;
+        /* 文字サイズを 2.2rem -> 2.8rem に大きく変更 */
+        font-size: 2.8rem !important;
+        font-weight: 900 !important;
+        letter-spacing: 4px !important;
         
         box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.35) !important;
         transition: all 0.15s ease-in-out !important;
         margin: 10px auto !important;
-        padding: 10px 0 !important;
+        padding: 12px 0 !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
