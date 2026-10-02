@@ -36,7 +36,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. デザインCSS（余白制御・位置調整・カード幅の拡張）
+# 3. デザインCSS（余白制御・位置調整・テキスト溢れ防止）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -53,7 +53,7 @@ st.markdown(
     .block-container {
         padding-top: 0rem !important;
         padding-bottom: 2rem !important;
-        max-width: 900px !important; /* コンテナ自体も少し横長に拡張 */
+        max-width: 950px !important; /* コンテナ幅を十分に確保 */
     }
     
     /* スタート画面：掛け軸の高さを回避するためのスペース */
@@ -61,32 +61,32 @@ st.markdown(
         height: 200px;
     }
 
-    /* ルール説明カード（1行で収まるよう横幅を拡張＆ロゴ回避用に上余白を追加） */
+    /* ルール説明カード（はみ出し防止・自然な折り返し設定） */
     .rule-card {
         background-color: rgba(255, 253, 245, 0.92);
         border: 3px solid #8b261d;
         border-radius: 12px;
-        padding: 20px 30px;
-        margin-top: 40px; /* タイトルロゴとの被りを防ぐ上部マージン */
-        margin-bottom: 25px;
+        padding: 18px 20px;
+        margin-top: 30px;
+        margin-bottom: 20px;
         width: 100%;
-        max-width: 850px; /* 横幅を広げて1行化 */
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         text-align: center;
         color: #1a1a1a;
         box-sizing: border-box;
     }
     .rule-card h3 {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         color: #8b261d;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         font-weight: bold;
     }
     .rule-card p {
-        font-size: 1.05rem;
-        line-height: 1.8;
-        margin-bottom: 8px;
-        white-space: nowrap; /* テキストの勝手な改行を防止 */
+        font-size: 0.95rem; /* 文字サイズをわずかに調整 */
+        line-height: 1.7;
+        margin-bottom: 6px;
+        white-space: normal; /* 勝手な1行固定を解除し、綺麗に収める */
+        word-break: break-word;
     }
 
     /* ゲームプレイ中の読み札カード */
@@ -267,7 +267,6 @@ if st.session_state.game_state == "start":
 
     st.markdown('<div class="title-spacer"></div>', unsafe_allow_html=True)
 
-    # 1行で綺麗に収まるようHTML表記を調整
     st.markdown(
         f"""
     <div class="rule-card">
