@@ -5,7 +5,6 @@ import random
 import time
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 
 # ---------------------------------------------------------
 # 1. ページ初期設定
@@ -37,7 +36,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. デザインCSS（レイアウト＆カード固定サイズ）
+# 3. デザインCSS（タブレット・札サイズ最適化）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -142,23 +141,18 @@ st.markdown(
         padding-bottom: 2px;
     }
 
-    /* 🎴 かるた取り札風ボタン（HTMLボタン用サイズ固定CSS） */
-    .karuta-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        justify-items: center;
-        align-items: center;
-        margin-top: 15px;
+    /* 🎴 かるた取り札風ボタン */
+    div.stButton {
+        display: flex !important;
+        justify-content: center !important;
     }
-    
     div.stButton > button {
         background-color: #faf6ed !important;
         color: #111111 !important;
         border: 5px double #2c4c3b !important;
         border-radius: 8px !important;
         
-        /* 札の確実な幅と高さを固定（縦長崩れ防止） */
+        /* 幅と高さを固定して崩れを防止 */
         width: 160px !important;
         height: 210px !important;
         
@@ -171,7 +165,8 @@ st.markdown(
         
         box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.35) !important;
         transition: all 0.15s ease-in-out !important;
-        margin: 0 auto !important;
+        margin: 10px auto !important;
+        padding: 10px 0 !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -287,6 +282,7 @@ if "game_state" not in st.session_state:
     st.session_state.mistakes = 0
     st.session_state.current_index = 0
     st.session_state.question_order = []
+    st.session_state.start_time = 0
 
 
 def start_new_game():
@@ -299,6 +295,7 @@ def start_new_game():
 
     st.session_state.question_order = order
     st.session_state.game_state = "playing"
+    st.session_state.start_time = time.time()
 
 
 # ---------------------------------------------------------
@@ -356,6 +353,7 @@ if st.session_state.game_state == "start":
                     st.session_state.question_order = order
 
                 st.session_state.game_state = "playing"
+                st.session_state.start_time = time.time()
                 st.rerun()
 
             if col_restart.button("🔄 最初からやり直す"):
@@ -388,23 +386,7 @@ if st.session_state.game_state == "start":
 elif st.session_state.game_state == "playing":
     set_background("game_bg.jpg")
 
-    # タイムオーバー時のフラグ処理
-    if st.session_state.get("time_out_flag", False):
-        st.session_state.time_out_flag = False
-        st.session_state.mistakes += 1
-        st.session_state.current_index += 1
-        if st.session_state.user_id:
-            save_user_progress(
-                st.session_state.user_id,
-                st.session_state.current_index,
-                st.session_state.score,
-                st.session_state.mistakes,
-                st.session_state.question_order,
-            )
-        st.error("⏰ タイムオーバー！お手つき！")
-        time.sleep(0.8)
-        st.rerun()
-
+    # 全問終了または2回お手つきでゲームオーバー
     if (
         st.session_state.current_index >= len(QUESTIONS)
         or st.session_state.mistakes >= 2
@@ -422,6 +404,29 @@ elif st.session_state.game_state == "playing":
     q_idx = st.session_state.question_order[st.session_state.current_index]
     q = QUESTIONS[q_idx]
 
+    # タイマー計算 (1問あたり10秒)
+    elapsed = time.time() - st.session_state.start_time
+    time_left = max(0, int(10 - elapsed))
+
+    # タイムオーバー判定
+    if time_left <= 0:
+        st.error("⏰ タイムオーバー！お手つき！")
+        st.session_state.mistakes += 1
+        st.session_state.current_index += 1
+
+        if st.session_state.user_id:
+            save_user_progress(
+                st.session_state.user_id,
+                st.session_state.current_index,
+                st.session_state.score,
+                st.session_state.mistakes,
+                st.session_state.question_order,
+            )
+
+        st.session_state.start_time = time.time()
+        time.sleep(1)
+        st.rerun()
+
     # 上部ステータスバー表示
     st.markdown(
         f"""
@@ -436,35 +441,12 @@ elif st.session_state.game_state == "playing":
         </div>
         <div class="status-box">
             <div class="status-label">残り時間</div>
-            <div class="status-value"><span id="js-timer">10</span> 秒</div>
+            <div class="status-value">{time_left} 秒</div>
         </div>
     </div>
     """,
         unsafe_allow_html=True,
     )
-
-    # JavaScriptで10秒カウントダウン（ブラウザ側で1秒ごとにリアルタイム表示更新）
-    timer_js = """
-    <script>
-        let timeLeft = 10;
-        let timerElement = parent.document.getElementById("js-timer");
-        let interval = setInterval(function() {
-            timeLeft -= 1;
-            if (timerElement) {
-                timerElement.innerText = timeLeft;
-            }
-            if (timeLeft <= 0) {
-                clearInterval(interval);
-                // タイムオーバー時にPython側に信号を送る
-                window.parent.postMessage({type: 'streamlit:setComponentValue', value: true}, '*');
-            }
-        }, 1000);
-    </script>
-    """
-    timeout_triggered = components.html(timer_js, height=0, width=0)
-    if timeout_triggered:
-        st.session_state.time_out_flag = True
-        st.rerun()
 
     if st.button("💾 保存して中断"):
         if st.session_state.user_id:
@@ -526,8 +508,13 @@ elif st.session_state.game_state == "playing":
                         st.session_state.question_order,
                     )
 
-                time.sleep(0.6)
+                st.session_state.start_time = time.time()
+                time.sleep(0.8)
                 st.rerun()
+
+    # タイマーをリアルタイムで減らすための1秒ごとの画面更新
+    time.sleep(1)
+    st.rerun()
 
 # 【結果発表画面】
 elif st.session_state.game_state == "game_over":
