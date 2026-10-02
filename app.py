@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import random
 import time
 import pandas as pd
 import streamlit as st
@@ -54,12 +55,12 @@ st.markdown(
         padding-bottom: 2rem !important;
     }
     
-    /* スタート画面：掛け軸の下まで押し下げるためのスペーサー */
+    /* スタート画面：掛け軸の高さを回避するためのスペース */
     .title-spacer {
-        height: 220px; /* 掛け軸の高さを回避するためのスペース */
+        height: 220px;
     }
 
-    /* ルール説明カード（掛け軸の下に配置・見やすい和紙風背景） */
+    /* ルール説明カード */
     .rule-card {
         background-color: rgba(255, 253, 245, 0.92);
         border: 3px solid #8b261d;
@@ -152,12 +153,19 @@ def load_all_progress():
     return {}
 
 
-def save_user_progress(user_id, current_index, score, mistakes):
+def save_user_progress(
+    user_id, current_index, score, mistakes, question_order=None
+):
     data = load_all_progress()
+
+    if question_order is None and user_id in data:
+        question_order = data[user_id].get("question_order", [])
+
     data[user_id] = {
         "current_index": current_index,
         "score": score,
         "mistakes": mistakes,
+        "question_order": question_order,
         "updated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
     with open(PROGRESS_FILE, "w", encoding="utf-8") as f:
@@ -165,9 +173,8 @@ def save_user_progress(user_id, current_index, score, mistakes):
 
 
 # ---------------------------------------------------------
-# 5. CSVデータ読み込み & 段位判定
+# 5. CSVデータ読み込み（※キャッシュ削除でシャッフルに対応）
 # ---------------------------------------------------------
-@st.cache_data
 def load_questions(csv_file="questions.csv"):
     df = pd.read_csv(csv_file)
     questions = []
@@ -228,6 +235,22 @@ if "game_state" not in st.session_state:
     st.session_state.mistakes = 0
     st.session_state.current_index = 0
     st.session_state.start_time = 0
+    st.session_state.question_order = []
+
+
+# 新規ゲームスタート時に毎回ランダムに並び替える関数
+def start_new_game():
+    st.session_state.current_index = 0
+    st.session_state.score = 0
+    st.session_state.mistakes = 0
+
+    # 全問題のインデックス（0〜299）を生成してシャッフル
+    order = list(range(len(QUESTIONS)))
+    random.shuffle(order)
+
+    st.session_state.question_order = order
+    st.session_state.game_state = "playing"
+    st.session_state.start_time = time.time()
 
 
 # ---------------------------------------------------------
@@ -238,7 +261,6 @@ if "game_state" not in st.session_state:
 if st.session_state.game_state == "start":
     set_background("title_bg.jpg")
 
-    # 掛け軸の「文法かるた」のタイトル部分を綺麗に避けるスペース
     st.markdown('<div class="title-spacer"></div>', unsafe_allow_html=True)
 
     st.markdown(
@@ -273,28 +295,46 @@ if st.session_state.game_state == "start":
             )
 
             col_resume, col_restart = st.columns(2)
-            if col_resume.button("▶️ 続きから再開する"):
+            if col_resume.button("▶️️ 続きから再開する"):
                 st.session_state.current_index = saved["current_index"]
                 st.session_state.score = saved["score"]
                 st.session_state.mistakes = saved["mistakes"]
+
+                # 保存されている出題順を取得（なければ新しくシャッフル）
+                saved_order = saved.get("question_order")
+                if saved_order and len(saved_order) == len(QUESTIONS):
+                    st.session_state.question_order = saved_order
+                else:
+                    order = list(range(len(QUESTIONS)))
+                    random.shuffle(order)
+                    st.session_state.question_order = order
+
                 st.session_state.game_state = "playing"
                 st.session_state.start_time = time.time()
                 st.rerun()
 
             if col_restart.button("🔄 最初からやり直す"):
-                st.session_state.current_index = 0
-                st.session_state.score = 0
-                st.session_state.mistakes = 0
-                st.session_state.game_state = "playing"
-                st.session_state.start_time = time.time()
+                start_new_game()
+                if st.session_state.user_id:
+                    save_user_progress(
+                        st.session_state.user_id,
+                        0,
+                        0,
+                        0,
+                        st.session_state.question_order,
+                    )
                 st.rerun()
         else:
             if st.button("🎴 はじめから開始する"):
-                st.session_state.current_index = 0
-                st.session_state.score = 0
-                st.session_state.mistakes = 0
-                st.session_state.game_state = "playing"
-                st.session_state.start_time = time.time()
+                start_new_game()
+                if st.session_state.user_id:
+                    save_user_progress(
+                        st.session_state.user_id,
+                        0,
+                        0,
+                        0,
+                        st.session_state.question_order,
+                    )
                 st.rerun()
     else:
         st.warning("⚠️ プレイを始めるにはユーザー名・IDを入力してください。")
@@ -310,7 +350,17 @@ elif st.session_state.game_state == "playing":
         st.session_state.game_state = "game_over"
         st.rerun()
 
-    q = QUESTIONS[st.session_state.current_index]
+    # 万が一出題リストが空だった場合のガード処理
+    if not st.session_state.question_order or len(
+        st.session_state.question_order
+    ) != len(QUESTIONS):
+        order = list(range(len(QUESTIONS)))
+        random.shuffle(order)
+        st.session_state.question_order = order
+
+    # シャッフルされた順番で問題を取り出す
+    q_idx = st.session_state.question_order[st.session_state.current_index]
+    q = QUESTIONS[q_idx]
 
     elapsed = time.time() - st.session_state.start_time
     time_left = max(0.0, 10.0 - elapsed)
@@ -326,6 +376,7 @@ elif st.session_state.game_state == "playing":
                 st.session_state.current_index,
                 st.session_state.score,
                 st.session_state.mistakes,
+                st.session_state.question_order,
             )
 
         st.session_state.start_time = time.time()
@@ -344,6 +395,7 @@ elif st.session_state.game_state == "playing":
                 st.session_state.current_index,
                 st.session_state.score,
                 st.session_state.mistakes,
+                st.session_state.question_order,
             )
             st.success("進捗を保存しました！")
             time.sleep(1)
@@ -394,6 +446,7 @@ elif st.session_state.game_state == "playing":
                         st.session_state.current_index,
                         st.session_state.score,
                         st.session_state.mistakes,
+                        st.session_state.question_order,
                     )
 
                 st.session_state.start_time = time.time()
@@ -407,7 +460,6 @@ elif st.session_state.game_state == "playing":
 elif st.session_state.game_state == "game_over":
     set_background("title_bg.jpg")
 
-    # スペーサー
     st.markdown('<div class="title-spacer"></div>', unsafe_allow_html=True)
 
     total_q = len(QUESTIONS)
