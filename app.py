@@ -36,7 +36,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. デザインCSS（文字サイズ超拡大・タブレット最適化）
+# 3. デザインCSS（レイアウト位置調整＆カードサイズ）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -46,30 +46,32 @@ st.markdown(
         font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
     }
 
-    /* Streamlit上部の不要な白枠・余白を非表示化 */
+    /* Streamlit上部ヘッダーの透過化と余白（上部が見切れないように適切なマージンを確保） */
     header {
-        visibility: hidden !important;
+        background-color: transparent !important;
     }
     .block-container {
-        padding-top: 0.5rem !important;
+        padding-top: 2rem !important;
         padding-bottom: 1rem !important;
         max-width: 750px !important;
     }
     
     /* スタート画面のスペース */
     .title-spacer {
-        height: 160px;
+        height: 120px;
     }
 
     /* 上部ステータス表示パネル */
     .status-container {
         display: flex;
         justify-content: space-around;
-        background-color: rgba(255, 255, 255, 0.92);
+        align-items: center;
+        background-color: rgba(255, 255, 255, 0.95);
+        border: 2px solid #8b261d;
         border-radius: 10px;
-        padding: 10px;
-        margin-bottom: 10px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+        padding: 10px 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
     .status-box {
         text-align: center;
@@ -141,7 +143,7 @@ st.markdown(
         padding-bottom: 2px;
     }
 
-    /* 🎴 かるた取り札風ボタン（文字拡大版） */
+    /* 🎴 かるた取り札風ボタン */
     div.stButton {
         display: flex !important;
         justify-content: center !important;
@@ -152,22 +154,20 @@ st.markdown(
         border: 5px double #2c4c3b !important;
         border-radius: 10px !important;
         
-        /* 札の枠サイズ設定 */
-        width: 170px !important;
-        height: 220px !important;
+        width: 160px !important;
+        height: 200px !important;
         
         writing-mode: vertical-rl !important;
         text-orientation: upright !important;
         
-        /* 文字サイズを 2.2rem -> 2.8rem に大きく変更 */
-        font-size: 2.8rem !important;
+        font-size: 2.6rem !important;
         font-weight: 900 !important;
         letter-spacing: 4px !important;
         
         box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.35) !important;
         transition: all 0.15s ease-in-out !important;
-        margin: 10px auto !important;
-        padding: 12px 0 !important;
+        margin: 8px auto !important;
+        padding: 10px 0 !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -428,7 +428,7 @@ elif st.session_state.game_state == "playing":
         time.sleep(1)
         st.rerun()
 
-    # 上部ステータスバー表示
+    # 上部ステータスバー表示（残り時間・獲得札数・お手つき）
     st.markdown(
         f"""
     <div class="status-container">
@@ -448,20 +448,6 @@ elif st.session_state.game_state == "playing":
     """,
         unsafe_allow_html=True,
     )
-
-    if st.button("💾 保存して中断"):
-        if st.session_state.user_id:
-            save_user_progress(
-                st.session_state.user_id,
-                st.session_state.current_index,
-                st.session_state.score,
-                st.session_state.mistakes,
-                st.session_state.question_order,
-            )
-            st.success("進捗を保存しました！")
-            time.sleep(1)
-            st.session_state.game_state = "start"
-            st.rerun()
 
     sentence_html = q["sentence"].replace(
         f"**{q['target']}**",
@@ -513,7 +499,23 @@ elif st.session_state.game_state == "playing":
                 time.sleep(0.8)
                 st.rerun()
 
-    # タイマーをリアルタイムで減らすための1秒ごとの画面更新
+    # 下部に「保存して中断」ボタンを配置
+    st.write("")
+    if st.button("💾 保存して中断", key="btn_save_exit"):
+        if st.session_state.user_id:
+            save_user_progress(
+                st.session_state.user_id,
+                st.session_state.current_index,
+                st.session_state.score,
+                st.session_state.mistakes,
+                st.session_state.question_order,
+            )
+            st.success("進捗を保存しました！")
+            time.sleep(1)
+            st.session_state.game_state = "start"
+            st.rerun()
+
+    # タイマーをリアルタイム更新するための1秒ごとの画面再描画
     time.sleep(1)
     st.rerun()
 
