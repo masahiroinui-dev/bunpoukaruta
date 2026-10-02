@@ -5,6 +5,7 @@ import random
 import time
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 # ---------------------------------------------------------
 # 1. ページ初期設定
@@ -36,7 +37,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. デザインCSS（タブレット札サイズ絶対固定版）
+# 3. デザインCSS（レイアウト＆カード固定サイズ）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -53,28 +54,36 @@ st.markdown(
     .block-container {
         padding-top: 0.5rem !important;
         padding-bottom: 1rem !important;
-        max-width: 700px !important; /* 中央に綺麗にまとまるサイズ */
+        max-width: 750px !important;
     }
     
-    /* スタート画面：掛け軸の高さを回避するためのスペース */
+    /* スタート画面のスペース */
     .title-spacer {
         height: 160px;
     }
 
-    /* 上部ステータス表示（視認性を確保する白い背景パネル） */
-    [data-testid="stMetric"] {
-        background-color: rgba(255, 255, 255, 0.88) !important;
-        border-radius: 8px !important;
-        padding: 6px 12px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+    /* 上部ステータス表示パネル */
+    .status-container {
+        display: flex;
+        justify-content: space-around;
+        background-color: rgba(255, 255, 255, 0.92);
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
     }
-    [data-testid="stMetricLabel"] {
-        color: #333333 !important;
-        font-weight: bold !important;
+    .status-box {
+        text-align: center;
     }
-    [data-testid="stMetricValue"] {
-        color: #8b261d !important;
-        font-weight: bold !important;
+    .status-label {
+        font-size: 0.85rem;
+        color: #555;
+        font-weight: bold;
+    }
+    .status-value {
+        font-size: 1.4rem;
+        color: #8b261d;
+        font-weight: bold;
     }
 
     /* ルール説明カード */
@@ -101,8 +110,6 @@ st.markdown(
         font-size: 1.0rem;
         line-height: 1.7;
         margin-bottom: 6px;
-        white-space: normal;
-        word-break: break-word;
     }
 
     /* ゲームプレイ中の読み札カード */
@@ -111,7 +118,7 @@ st.markdown(
         border: 4px solid #8b261d;
         border-radius: 10px;
         padding: 14px 18px;
-        margin-top: 8px;
+        margin-top: 5px;
         margin-bottom: 15px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         text-align: center;
@@ -135,47 +142,41 @@ st.markdown(
         padding-bottom: 2px;
     }
 
-    /* 🎴 かるた取り札風ボタン（明確なピクセルサイズ固定） */
-    div.stButton {
-        display: flex !important;
-        justify-content: center !important;
+    /* 🎴 かるた取り札風ボタン（HTMLボタン用サイズ固定CSS） */
+    .karuta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        justify-items: center;
+        align-items: center;
+        margin-top: 15px;
     }
+    
     div.stButton > button {
         background-color: #faf6ed !important;
         color: #111111 !important;
-        
-        /* 畳縁・かるたの外枠 */
         border: 5px double #2c4c3b !important;
         border-radius: 8px !important;
         
-        /* 札の物理サイズをしっかりと確保（幅150px×高さ200px） */
-        width: 150px !important;
-        min-width: 150px !important;
-        height: 200px !important;
-        min-height: 200px !important;
+        /* 札の確実な幅と高さを固定（縦長崩れ防止） */
+        width: 160px !important;
+        height: 210px !important;
         
-        /* 縦書き配置と文字の大きさ設定 */
         writing-mode: vertical-rl !important;
         text-orientation: upright !important;
         
-        font-size: 2.0rem !important;
+        font-size: 2.2rem !important;
         font-weight: bold !important;
         letter-spacing: 8px !important;
-        line-height: 1.0 !important;
         
-        /* 影と配置設定 */
         box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.35) !important;
         transition: all 0.15s ease-in-out !important;
-        
-        margin: 10px auto !important;
-        padding: 15px 0 !important;
-        
+        margin: 0 auto !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
     }
 
-    /* 取り札ホバー時・タップ時演出 */
     div.stButton > button:hover {
         transform: translateY(-4px) scale(1.02) !important;
         box-shadow: 0px 10px 18px rgba(0, 0, 0, 0.45) !important;
@@ -285,7 +286,6 @@ if "game_state" not in st.session_state:
     st.session_state.score = 0
     st.session_state.mistakes = 0
     st.session_state.current_index = 0
-    st.session_state.start_time = 0
     st.session_state.question_order = []
 
 
@@ -299,7 +299,6 @@ def start_new_game():
 
     st.session_state.question_order = order
     st.session_state.game_state = "playing"
-    st.session_state.start_time = time.time()
 
 
 # ---------------------------------------------------------
@@ -357,7 +356,6 @@ if st.session_state.game_state == "start":
                     st.session_state.question_order = order
 
                 st.session_state.game_state = "playing"
-                st.session_state.start_time = time.time()
                 st.rerun()
 
             if col_restart.button("🔄 最初からやり直す"):
@@ -390,6 +388,23 @@ if st.session_state.game_state == "start":
 elif st.session_state.game_state == "playing":
     set_background("game_bg.jpg")
 
+    # タイムオーバー時のフラグ処理
+    if st.session_state.get("time_out_flag", False):
+        st.session_state.time_out_flag = False
+        st.session_state.mistakes += 1
+        st.session_state.current_index += 1
+        if st.session_state.user_id:
+            save_user_progress(
+                st.session_state.user_id,
+                st.session_state.current_index,
+                st.session_state.score,
+                st.session_state.mistakes,
+                st.session_state.question_order,
+            )
+        st.error("⏰ タイムオーバー！お手つき！")
+        time.sleep(0.8)
+        st.rerun()
+
     if (
         st.session_state.current_index >= len(QUESTIONS)
         or st.session_state.mistakes >= 2
@@ -407,33 +422,51 @@ elif st.session_state.game_state == "playing":
     q_idx = st.session_state.question_order[st.session_state.current_index]
     q = QUESTIONS[q_idx]
 
-    elapsed = time.time() - st.session_state.start_time
-    time_left = max(0.0, 10.0 - elapsed)
+    # 上部ステータスバー表示
+    st.markdown(
+        f"""
+    <div class="status-container">
+        <div class="status-box">
+            <div class="status-label">獲得札数</div>
+            <div class="status-value">{st.session_state.score} 枚</div>
+        </div>
+        <div class="status-box">
+            <div class="status-label">お手つき</div>
+            <div class="status-value">{st.session_state.mistakes} / 2</div>
+        </div>
+        <div class="status-box">
+            <div class="status-label">残り時間</div>
+            <div class="status-value"><span id="js-timer">10</span> 秒</div>
+        </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
-    if time_left <= 0:
-        st.error("⏰ タイムオーバー！お手つき！")
-        st.session_state.mistakes += 1
-        st.session_state.current_index += 1
-
-        if st.session_state.user_id:
-            save_user_progress(
-                st.session_state.user_id,
-                st.session_state.current_index,
-                st.session_state.score,
-                st.session_state.mistakes,
-                st.session_state.question_order,
-            )
-
-        st.session_state.start_time = time.time()
-        time.sleep(1)
+    # JavaScriptで10秒カウントダウン（ブラウザ側で1秒ごとにリアルタイム表示更新）
+    timer_js = """
+    <script>
+        let timeLeft = 10;
+        let timerElement = parent.document.getElementById("js-timer");
+        let interval = setInterval(function() {
+            timeLeft -= 1;
+            if (timerElement) {
+                timerElement.innerText = timeLeft;
+            }
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                // タイムオーバー時にPython側に信号を送る
+                window.parent.postMessage({type: 'streamlit:setComponentValue', value: true}, '*');
+            }
+        }, 1000);
+    </script>
+    """
+    timeout_triggered = components.html(timer_js, height=0, width=0)
+    if timeout_triggered:
+        st.session_state.time_out_flag = True
         st.rerun()
 
-    col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
-    col1.metric("獲得札数", f"{st.session_state.score} 枚")
-    col2.metric("お手つき", f"{st.session_state.mistakes} / 2")
-    col3.metric("残り時間", f"{time_left:.1f} 秒")
-
-    if col4.button("💾 保存して中断"):
+    if st.button("💾 保存して中断"):
         if st.session_state.user_id:
             save_user_progress(
                 st.session_state.user_id,
@@ -446,8 +479,6 @@ elif st.session_state.game_state == "playing":
             time.sleep(1)
             st.session_state.game_state = "start"
             st.rerun()
-
-    st.progress(time_left / 10.0)
 
     sentence_html = q["sentence"].replace(
         f"**{q['target']}**",
@@ -495,8 +526,7 @@ elif st.session_state.game_state == "playing":
                         st.session_state.question_order,
                     )
 
-                st.session_state.start_time = time.time()
-                time.sleep(0.8)
+                time.sleep(0.6)
                 st.rerun()
 
 # 【結果発表画面】
