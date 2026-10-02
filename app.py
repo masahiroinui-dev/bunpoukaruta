@@ -36,7 +36,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. デザインCSS（リアルなかるた札の縦横比・配置制御）
+# 3. デザインCSS（タブレット最適化・和風かるたスタイル）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -51,23 +51,23 @@ st.markdown(
         visibility: hidden !important;
     }
     .block-container {
-        padding-top: 0rem !important;
+        padding-top: 0.5rem !important;
         padding-bottom: 2rem !important;
-        max-width: 850px !important;
+        max-width: 900px !important; /* タブレット画面に合わせた最適幅 */
     }
     
     /* スタート画面：掛け軸の高さを回避するためのスペース */
     .title-spacer {
-        height: 200px;
+        height: 180px;
     }
 
     /* ルール説明カード */
     .rule-card {
-        background-color: rgba(255, 253, 245, 0.92);
+        background-color: rgba(255, 253, 245, 0.94);
         border: 3px solid #8b261d;
         border-radius: 12px;
-        padding: 18px 20px;
-        margin-top: 30px;
+        padding: 20px 24px;
+        margin-top: 20px;
         margin-bottom: 20px;
         width: 100%;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
@@ -76,46 +76,46 @@ st.markdown(
         box-sizing: border-box;
     }
     .rule-card h3 {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         color: #8b261d;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         font-weight: bold;
     }
     .rule-card p {
-        font-size: 0.95rem;
-        line-height: 1.7;
-        margin-bottom: 6px;
+        font-size: 1.05rem;
+        line-height: 1.8;
+        margin-bottom: 8px;
         white-space: normal;
         word-break: break-word;
     }
 
     /* ゲームプレイ中の読み札カード */
     .yomifuda-play {
-        background-color: rgba(255, 253, 250, 0.95);
+        background-color: rgba(255, 253, 250, 0.96);
         border: 4px solid #8b261d;
         border-radius: 12px;
         padding: 20px;
-        margin-top: 15px;
-        margin-bottom: 25px;
+        margin-top: 10px;
+        margin-bottom: 20px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         text-align: center;
         color: #2b2b2b;
     }
     .yomifuda-title {
-        font-size: 1.05rem;
+        font-size: 1.15rem;
         color: #8b261d;
         font-weight: bold;
         letter-spacing: 2px;
         margin-bottom: 8px;
     }
     .yomifuda-text {
-        font-size: 1.8rem;
+        font-size: 2rem;
         font-weight: bold;
         line-height: 1.6;
     }
     .target-highlight {
         color: #d9381e;
-        border-bottom: 3px solid #d9381e;
+        border-bottom: 4px solid #d9381e;
         padding-bottom: 2px;
     }
 
@@ -125,42 +125,56 @@ st.markdown(
         justify-content: center !important;
     }
 
-    /* 🎴 かるた取り札風ボタン（適正な長方形サイズ & 和風デザイン） */
+    /* 🎴 かるた取り札風ボタン（タブレット画面サイズ基準） */
     div.stButton > button {
         background-color: #faf6ed !important;
         color: #111111 !important;
         
         /* 札のフチ（緑の二重線で畳縁・かるたの外枠を再現） */
-        border: 5px double #2c4c3b !important;
-        border-radius: 4px !important;
+        border: 6px double #2c4c3b !important;
+        border-radius: 6px !important;
         
-        /* リアルなかるた札の縦横比（約 1:1.35） */
-        width: 140px !important;
-        height: 190px !important;
+        /* タブレット（768px以上）での標準サイズ */
+        width: 180px !important;
+        height: 240px !important;
         
         /* 縦書き配置 */
         writing-mode: vertical-rl !important;
         text-orientation: upright !important;
         
-        font-size: 1.8rem !important;
+        font-size: 2.2rem !important;
         font-weight: bold !important;
-        letter-spacing: 8px !important;
+        letter-spacing: 10px !important;
         
         /* 陰影効果（畳の上に置かれているような立体感） */
-        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.4) !important;
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.35) !important;
         transition: all 0.2s ease-in-out !important;
         
-        margin: 12px auto !important;
-        padding: 10px 0 !important;
+        margin: 10px auto !important;
+        padding: 15px 0 !important;
     }
 
-    /* 取り札ホバー時（札を持ち上げるような演出） */
+    /* 取り札ホバー時・タップ時演出 */
     div.stButton > button:hover {
-        transform: translateY(-8px) scale(1.04) !important;
-        box-shadow: 0px 14px 20px rgba(0, 0, 0, 0.5) !important;
+        transform: translateY(-8px) scale(1.03) !important;
+        box-shadow: 0px 14px 22px rgba(0, 0, 0, 0.45) !important;
         background-color: #fffdf5 !important;
         border-color: #8b261d !important;
         color: #8b261d !important;
+    }
+
+    /* 📱 スマートフォン等の小画面用レスポンシブ調整 */
+    @media (max-width: 767px) {
+        div.stButton > button {
+            width: 130px !important;
+            height: 175px !important;
+            font-size: 1.6rem !important;
+            letter-spacing: 6px !important;
+            border-width: 4px !important;
+        }
+        .yomifuda-text {
+            font-size: 1.5rem !important;
+        }
     }
 </style>
 """,
