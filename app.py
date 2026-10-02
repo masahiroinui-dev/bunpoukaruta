@@ -36,7 +36,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. デザインCSS（タブレット最適化・和風かるたスタイル）
+# 3. デザインCSS（タブレット最適化・カード＆文字サイズ調整）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -51,14 +51,14 @@ st.markdown(
         visibility: hidden !important;
     }
     .block-container {
-        padding-top: 0.5rem !important;
-        padding-bottom: 2rem !important;
-        max-width: 900px !important; /* タブレット画面に合わせた最適幅 */
+        padding-top: 0.2rem !important;
+        padding-bottom: 1rem !important;
+        max-width: 800px !important; /* タブレット画面に収まる最大幅 */
     }
     
     /* スタート画面：掛け軸の高さを回避するためのスペース */
     .title-spacer {
-        height: 180px;
+        height: 160px;
     }
 
     /* ルール説明カード */
@@ -66,9 +66,9 @@ st.markdown(
         background-color: rgba(255, 253, 245, 0.94);
         border: 3px solid #8b261d;
         border-radius: 12px;
-        padding: 20px 24px;
-        margin-top: 20px;
-        margin-bottom: 20px;
+        padding: 16px 20px;
+        margin-top: 15px;
+        margin-bottom: 15px;
         width: 100%;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         text-align: center;
@@ -76,15 +76,15 @@ st.markdown(
         box-sizing: border-box;
     }
     .rule-card h3 {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         color: #8b261d;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         font-weight: bold;
     }
     .rule-card p {
-        font-size: 1.05rem;
-        line-height: 1.8;
-        margin-bottom: 8px;
+        font-size: 1.0rem;
+        line-height: 1.7;
+        margin-bottom: 6px;
         white-space: normal;
         word-break: break-word;
     }
@@ -93,88 +93,83 @@ st.markdown(
     .yomifuda-play {
         background-color: rgba(255, 253, 250, 0.96);
         border: 4px solid #8b261d;
-        border-radius: 12px;
-        padding: 20px;
-        margin-top: 10px;
-        margin-bottom: 20px;
+        border-radius: 10px;
+        padding: 12px 18px;
+        margin-top: 5px;
+        margin-bottom: 15px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         text-align: center;
         color: #2b2b2b;
     }
     .yomifuda-title {
-        font-size: 1.15rem;
+        font-size: 1.0rem;
         color: #8b261d;
         font-weight: bold;
         letter-spacing: 2px;
-        margin-bottom: 8px;
+        margin-bottom: 4px;
     }
     .yomifuda-text {
-        font-size: 2rem;
+        font-size: 1.7rem;
         font-weight: bold;
-        line-height: 1.6;
+        line-height: 1.5;
     }
     .target-highlight {
         color: #d9381e;
-        border-bottom: 4px solid #d9381e;
+        border-bottom: 3px solid #d9381e;
         padding-bottom: 2px;
     }
 
-    /* 🎴 かるた取り札コンテナ（中央寄せ） */
+    /* 🎴 かるた取り札コンテナ（中央配置・高さ制御） */
     .stColumn > div {
         display: flex !important;
         justify-content: center !important;
+        align-items: center !important;
     }
 
-    /* 🎴 かるた取り札風ボタン（タブレット画面サイズ基準） */
+    /* 🎴 かるた取り札風ボタン（画面高さに連動し文字を大きく強調） */
     div.stButton > button {
         background-color: #faf6ed !important;
         color: #111111 !important;
         
         /* 札のフチ（緑の二重線で畳縁・かるたの外枠を再現） */
-        border: 6px double #2c4c3b !important;
+        border: 5px double #2c4c3b !important;
         border-radius: 6px !important;
         
-        /* タブレット（768px以上）での標準サイズ */
-        width: 180px !important;
-        height: 240px !important;
+        /* 画面の高さ(vh)と幅に合わせた黄金比率カードサイズ */
+        width: 100% !important;
+        max-width: 200px !important;
+        height: 28vh !important;
+        max-height: 220px !important;
+        min-height: 150px !important;
+        aspect-ratio: 0.72 !important;
         
-        /* 縦書き配置 */
+        /* 縦書き配置と文字の超大型化 */
         writing-mode: vertical-rl !important;
         text-orientation: upright !important;
         
-        font-size: 2.2rem !important;
-        font-weight: bold !important;
-        letter-spacing: 10px !important;
+        font-size: 2.8rem !important; /* 文字を大きく太く */
+        font-weight: 900 !important;
+        letter-spacing: 12px !important;
         
-        /* 陰影効果（畳の上に置かれているような立体感） */
-        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.35) !important;
-        transition: all 0.2s ease-in-out !important;
+        /* 畳の上に置かれているような影と中央揃え */
+        box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.35) !important;
+        transition: all 0.15s ease-in-out !important;
         
-        margin: 10px auto !important;
-        padding: 15px 0 !important;
+        margin: 6px auto !important;
+        padding: 0 !important;
+        
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
 
     /* 取り札ホバー時・タップ時演出 */
     div.stButton > button:hover {
-        transform: translateY(-8px) scale(1.03) !important;
-        box-shadow: 0px 14px 22px rgba(0, 0, 0, 0.45) !important;
+        transform: translateY(-5px) scale(1.03) !important;
+        box-shadow: 0px 10px 18px rgba(0, 0, 0, 0.45) !important;
         background-color: #fffdf5 !important;
         border-color: #8b261d !important;
         color: #8b261d !important;
-    }
-
-    /* 📱 スマートフォン等の小画面用レスポンシブ調整 */
-    @media (max-width: 767px) {
-        div.stButton > button {
-            width: 130px !important;
-            height: 175px !important;
-            font-size: 1.6rem !important;
-            letter-spacing: 6px !important;
-            border-width: 4px !important;
-        }
-        .yomifuda-text {
-            font-size: 1.5rem !important;
-        }
     }
 </style>
 """,
@@ -491,9 +486,6 @@ elif st.session_state.game_state == "playing":
                 st.session_state.start_time = time.time()
                 time.sleep(0.8)
                 st.rerun()
-
-    time.sleep(0.1)
-    st.rerun()
 
 # 【結果発表画面】
 elif st.session_state.game_state == "game_over":
