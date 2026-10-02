@@ -36,7 +36,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. デザインCSS（タブレット最適化・カード＆文字サイズ調整）
+# 3. デザインCSS（タブレット札サイズ絶対固定版）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -51,14 +51,30 @@ st.markdown(
         visibility: hidden !important;
     }
     .block-container {
-        padding-top: 0.2rem !important;
+        padding-top: 0.5rem !important;
         padding-bottom: 1rem !important;
-        max-width: 800px !important; /* タブレット画面に収まる最大幅 */
+        max-width: 700px !important; /* 中央に綺麗にまとまるサイズ */
     }
     
     /* スタート画面：掛け軸の高さを回避するためのスペース */
     .title-spacer {
         height: 160px;
+    }
+
+    /* 上部ステータス表示（視認性を確保する白い背景パネル） */
+    [data-testid="stMetric"] {
+        background-color: rgba(255, 255, 255, 0.88) !important;
+        border-radius: 8px !important;
+        padding: 6px 12px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #333333 !important;
+        font-weight: bold !important;
+    }
+    [data-testid="stMetricValue"] {
+        color: #8b261d !important;
+        font-weight: bold !important;
     }
 
     /* ルール説明カード */
@@ -94,8 +110,8 @@ st.markdown(
         background-color: rgba(255, 253, 250, 0.96);
         border: 4px solid #8b261d;
         border-radius: 10px;
-        padding: 12px 18px;
-        margin-top: 5px;
+        padding: 14px 18px;
+        margin-top: 8px;
         margin-bottom: 15px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         text-align: center;
@@ -106,10 +122,10 @@ st.markdown(
         color: #8b261d;
         font-weight: bold;
         letter-spacing: 2px;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
     }
     .yomifuda-text {
-        font-size: 1.7rem;
+        font-size: 1.8rem;
         font-weight: bold;
         line-height: 1.5;
     }
@@ -119,44 +135,40 @@ st.markdown(
         padding-bottom: 2px;
     }
 
-    /* 🎴 かるた取り札コンテナ（中央配置・高さ制御） */
-    .stColumn > div {
+    /* 🎴 かるた取り札風ボタン（明確なピクセルサイズ固定） */
+    div.stButton {
         display: flex !important;
         justify-content: center !important;
-        align-items: center !important;
     }
-
-    /* 🎴 かるた取り札風ボタン（画面高さに連動し文字を大きく強調） */
     div.stButton > button {
         background-color: #faf6ed !important;
         color: #111111 !important;
         
-        /* 札のフチ（緑の二重線で畳縁・かるたの外枠を再現） */
+        /* 畳縁・かるたの外枠 */
         border: 5px double #2c4c3b !important;
-        border-radius: 6px !important;
+        border-radius: 8px !important;
         
-        /* 画面の高さ(vh)と幅に合わせた黄金比率カードサイズ */
-        width: 100% !important;
-        max-width: 200px !important;
-        height: 28vh !important;
-        max-height: 220px !important;
-        min-height: 150px !important;
-        aspect-ratio: 0.72 !important;
+        /* 札の物理サイズをしっかりと確保（幅150px×高さ200px） */
+        width: 150px !important;
+        min-width: 150px !important;
+        height: 200px !important;
+        min-height: 200px !important;
         
-        /* 縦書き配置と文字の超大型化 */
+        /* 縦書き配置と文字の大きさ設定 */
         writing-mode: vertical-rl !important;
         text-orientation: upright !important;
         
-        font-size: 2.8rem !important; /* 文字を大きく太く */
-        font-weight: 900 !important;
-        letter-spacing: 12px !important;
+        font-size: 2.0rem !important;
+        font-weight: bold !important;
+        letter-spacing: 8px !important;
+        line-height: 1.0 !important;
         
-        /* 畳の上に置かれているような影と中央揃え */
+        /* 影と配置設定 */
         box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.35) !important;
         transition: all 0.15s ease-in-out !important;
         
-        margin: 6px auto !important;
-        padding: 0 !important;
+        margin: 10px auto !important;
+        padding: 15px 0 !important;
         
         display: flex !important;
         justify-content: center !important;
@@ -165,7 +177,7 @@ st.markdown(
 
     /* 取り札ホバー時・タップ時演出 */
     div.stButton > button:hover {
-        transform: translateY(-5px) scale(1.03) !important;
+        transform: translateY(-4px) scale(1.02) !important;
         box-shadow: 0px 10px 18px rgba(0, 0, 0, 0.45) !important;
         background-color: #fffdf5 !important;
         border-color: #8b261d !important;
