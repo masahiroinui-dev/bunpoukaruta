@@ -35,7 +35,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. かるた風基本デザインCSS（透明化＆余白削減）
+# 3. デザインCSS（余白制御・位置調整）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -50,37 +50,45 @@ st.markdown(
         visibility: hidden !important;
     }
     .block-container {
-        padding-top: 1rem !important;
+        padding-top: 0rem !important;
         padding-bottom: 2rem !important;
     }
     
-    /* 読み札・ルールカード（完全透明化） */
-    .yomifuda-transparent {
-        background-color: transparent !important;
-        border: none !important;
-        padding: 10px 20px;
-        margin-bottom: 15px;
-        text-align: center;
-        color: #2b2b2b;
-        text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8); /* 背景画像の上でも文字が見やすいように白い影を追加 */
-    }
-    .yomifuda-transparent h3 {
-        font-size: 1.8rem;
-        color: #1a1a1a;
-        margin-bottom: 10px;
-    }
-    .yomifuda-transparent p {
-        font-size: 1.15rem;
-        line-height: 1.8;
-        font-weight: bold;
+    /* スタート画面：掛け軸の下まで押し下げるためのスペーサー */
+    .title-spacer {
+        height: 220px; /* 掛け軸の高さを回避するためのスペース */
     }
 
-    /* ゲームプレイ中の読み札カード（半透明で読みやすく） */
+    /* ルール説明カード（掛け軸の下に配置・見やすい和紙風背景） */
+    .rule-card {
+        background-color: rgba(255, 253, 245, 0.92);
+        border: 3px solid #8b261d;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        text-align: center;
+        color: #1a1a1a;
+    }
+    .rule-card h3 {
+        font-size: 1.5rem;
+        color: #8b261d;
+        margin-bottom: 12px;
+        font-weight: bold;
+    }
+    .rule-card p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 8px;
+    }
+
+    /* ゲームプレイ中の読み札カード */
     .yomifuda-play {
-        background-color: rgba(255, 253, 250, 0.92);
+        background-color: rgba(255, 253, 250, 0.95);
         border: 4px solid #8b261d;
         border-radius: 12px;
         padding: 20px;
+        margin-top: 20px;
         margin-bottom: 15px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         text-align: center;
@@ -230,19 +238,16 @@ if "game_state" not in st.session_state:
 if st.session_state.game_state == "start":
     set_background("title_bg.jpg")
 
-    # 掛け軸の「文法かるた」タイトル下まで間隔を空けるための空行
-    st.write("")
-    st.write("")
+    # 掛け軸の「文法かるた」のタイトル部分を綺麗に避けるスペース
+    st.markdown('<div class="title-spacer"></div>', unsafe_allow_html=True)
 
     st.markdown(
         f"""
-    <div class="yomifuda-transparent">
+    <div class="rule-card">
         <h3>【ルール】</h3>
         <p>問題文の<b>「強調された助詞」</b>の種類を見極め、かるたの取り札を選んでください！</p>
-        <p>📚 <b>総問題数</b>: 全 {len(QUESTIONS)} 問<br>
-        ⏱️ <b>制限時間</b>: 1問につき <b>10秒</b><br>
-        ❌ <b>お手つき</b>: <b>2回</b>でゲームオーバー<br>
-        🏅 <b>段位認定</b>: <b>20問正解ごとに昇段</b>（十級〜五段）、全問正解で <b>名人</b></p>
+        <p>📚 <b>総問題数</b>: 全 {len(QUESTIONS)} 問 | ⏱️ <b>制限時間</b>: 1問につき <b>10秒</b><br>
+        ❌ <b>お手つき</b>: <b>2回</b>でゲームオーバー | 🏅 <b>段位認定</b>: <b>20問正解ごとに昇段</b></p>
     </div>
     """,
         unsafe_allow_html=True,
@@ -402,13 +407,16 @@ elif st.session_state.game_state == "playing":
 elif st.session_state.game_state == "game_over":
     set_background("title_bg.jpg")
 
+    # スペーサー
+    st.markdown('<div class="title-spacer"></div>', unsafe_allow_html=True)
+
     total_q = len(QUESTIONS)
     score = st.session_state.score
     rank = calculate_rank(score, total_q)
 
     st.markdown(
         f"""
-    <div class="yomifuda-play">
+    <div class="rule-card">
         <h2 style="color: #8b261d;">📜 大会結果 📜</h2>
         <p style="font-size: 1.1rem; color: #555;">対局者: <b>{st.session_state.user_id}</b></p>
         <p style="font-size: 1.3rem;">獲得札数: <b>{score} / {total_q} 枚</b></p>
