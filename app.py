@@ -8,7 +8,7 @@ import streamlit as st
 # ---------------------------------------------------------
 # 1. ページ初期設定
 # ---------------------------------------------------------
-st.set_page_config(page_title="助詞かるた大会", page_icon="🎴", layout="centered")
+st.set_page_config(page_title="助詞かるた", page_icon="🎴", layout="centered")
 
 
 # ---------------------------------------------------------
@@ -35,7 +35,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. かるた風基本デザインCSS
+# 3. かるた風基本デザインCSS（透明化＆余白削減）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -44,14 +44,44 @@ st.markdown(
     html, body, [class*="css"] {
         font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
     }
+
+    /* Streamlit上部の不要な白枠・余白を非表示化 */
+    header {
+        visibility: hidden !important;
+    }
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 2rem !important;
+    }
     
-    /* 読み札（問題表示） */
-    .yomifuda {
-        background-color: rgba(255, 253, 250, 0.93);
+    /* 読み札・ルールカード（完全透明化） */
+    .yomifuda-transparent {
+        background-color: transparent !important;
+        border: none !important;
+        padding: 10px 20px;
+        margin-bottom: 15px;
+        text-align: center;
+        color: #2b2b2b;
+        text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8); /* 背景画像の上でも文字が見やすいように白い影を追加 */
+    }
+    .yomifuda-transparent h3 {
+        font-size: 1.8rem;
+        color: #1a1a1a;
+        margin-bottom: 10px;
+    }
+    .yomifuda-transparent p {
+        font-size: 1.15rem;
+        line-height: 1.8;
+        font-weight: bold;
+    }
+
+    /* ゲームプレイ中の読み札カード（半透明で読みやすく） */
+    .yomifuda-play {
+        background-color: rgba(255, 253, 250, 0.92);
         border: 4px solid #8b261d;
         border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 20px;
+        padding: 20px;
+        margin-bottom: 15px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         text-align: center;
         color: #2b2b2b;
@@ -80,7 +110,7 @@ st.markdown(
         color: #1a1a1a !important;
         border: 3px solid #1c3d5a !important;
         border-radius: 8px !important;
-        height: 100px !important;
+        height: 90px !important;
         font-size: 1.5rem !important;
         font-weight: bold !important;
         box-shadow: 2px 4px 8px rgba(0,0,0,0.3) !important;
@@ -147,21 +177,21 @@ def load_questions(csv_file="questions.csv"):
 
 
 RANK_LIST = [
-    "十級",  # 0~19問
-    "九級",  # 20~39問
-    "八級",  # 40~59問
-    "七級",  # 60~79問
-    "六級",  # 80~99問
-    "五級",  # 100~119問
-    "四級",  # 120~139問
-    "三級",  # 140~159問
-    "二級",  # 160~179問
-    "一級",  # 180~199問
-    "初段",  # 200~219問
-    "二段",  # 220~239問
-    "三段",  # 240~259問
-    "四段",  # 260~279問
-    "五段",  # 280~299問
+    "十級",
+    "九級",
+    "八級",
+    "七級",
+    "六級",
+    "五級",
+    "四級",
+    "三級",
+    "二級",
+    "一級",
+    "初段",
+    "二段",
+    "三段",
+    "四段",
+    "五段",
 ]
 
 
@@ -191,10 +221,6 @@ if "game_state" not in st.session_state:
     st.session_state.current_index = 0
     st.session_state.start_time = 0
 
-st.markdown(
-    "<h1 style='text-align: center; color: #8b261d;'>🎴 助詞かるた選手権</h1>",
-    unsafe_allow_html=True,
-)
 
 # ---------------------------------------------------------
 # 7. 画面制御
@@ -202,11 +228,15 @@ st.markdown(
 
 # 【スタート画面 / 途中再開選択】
 if st.session_state.game_state == "start":
-    set_background("title_bg.jpg")  # タイトル背景
+    set_background("title_bg.jpg")
+
+    # 掛け軸の「文法かるた」タイトル下まで間隔を空けるための空行
+    st.write("")
+    st.write("")
 
     st.markdown(
         f"""
-    <div class="yomifuda">
+    <div class="yomifuda-transparent">
         <h3>【ルール】</h3>
         <p>問題文の<b>「強調された助詞」</b>の種類を見極め、かるたの取り札を選んでください！</p>
         <p>📚 <b>総問題数</b>: 全 {len(QUESTIONS)} 問<br>
@@ -266,9 +296,8 @@ if st.session_state.game_state == "start":
 
 # 【ゲームプレイ画面】
 elif st.session_state.game_state == "playing":
-    set_background("game_bg.jpg")  # ゲームプレイ背景
+    set_background("game_bg.jpg")
 
-    # 終了判定（全問終了 または 2回ミス）
     if (
         st.session_state.current_index >= len(QUESTIONS)
         or st.session_state.mistakes >= 2
@@ -278,7 +307,6 @@ elif st.session_state.game_state == "playing":
 
     q = QUESTIONS[st.session_state.current_index]
 
-    # タイマー計算
     elapsed = time.time() - st.session_state.start_time
     time_left = max(0.0, 10.0 - elapsed)
 
@@ -299,7 +327,6 @@ elif st.session_state.game_state == "playing":
         time.sleep(1)
         st.rerun()
 
-    # ヘッダー情報 ＆ 中断保存ボタン
     col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
     col1.metric("獲得札数", f"{st.session_state.score} 枚")
     col2.metric("お手つき", f"{st.session_state.mistakes} / 2")
@@ -313,29 +340,27 @@ elif st.session_state.game_state == "playing":
                 st.session_state.score,
                 st.session_state.mistakes,
             )
-            st.success("進捗を保存しました！スタート画面に戻ります。")
+            st.success("進捗を保存しました！")
             time.sleep(1)
             st.session_state.game_state = "start"
             st.rerun()
 
     st.progress(time_left / 10.0)
 
-    # 問題文表示
     sentence_html = q["sentence"].replace(
         f"**{q['target']}**",
         f"<span class='target-highlight'>{q['target']}</span>",
     )
     st.markdown(
         f"""
-    <div class="yomifuda">
-        <div class="yomifuda-title">【 第 {st.session_state.current_index + 1} 首 / 全 {len(QUESTIONS)} 首 】 (プレイヤー: {st.session_state.user_id})</div>
+    <div class="yomifuda-play">
+        <div class="yomifuda-title">【 第 {st.session_state.current_index + 1} 首 / 全 {len(QUESTIONS)} 首 】 (対局者: {st.session_state.user_id})</div>
         <div class="yomifuda-text">「 {sentence_html} 」</div>
     </div>
     """,
         unsafe_allow_html=True,
     )
 
-    # 取り札配置
     col_a, col_b = st.columns(2)
     cards = [
         (col_a, "格助詞"),
@@ -377,18 +402,14 @@ elif st.session_state.game_state == "playing":
 elif st.session_state.game_state == "game_over":
     set_background("title_bg.jpg")
 
-    st.markdown(
-        "<h2 style='text-align: center; color: #8b261d;'>📜 大会結果 📜</h2>",
-        unsafe_allow_html=True,
-    )
-
     total_q = len(QUESTIONS)
     score = st.session_state.score
     rank = calculate_rank(score, total_q)
 
     st.markdown(
         f"""
-    <div class="yomifuda">
+    <div class="yomifuda-play">
+        <h2 style="color: #8b261d;">📜 大会結果 📜</h2>
         <p style="font-size: 1.1rem; color: #555;">対局者: <b>{st.session_state.user_id}</b></p>
         <p style="font-size: 1.3rem;">獲得札数: <b>{score} / {total_q} 枚</b></p>
         <p style="font-size: 1.3rem;">到達問題: <b>第 {st.session_state.current_index} 問</b></p>
