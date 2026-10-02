@@ -36,7 +36,7 @@ def set_background(image_path):
 
 
 # ---------------------------------------------------------
-# 3. デザインCSS（余白制御・位置調整）
+# 3. デザインCSS（余白制御・位置調整・カード幅の拡張）
 # ---------------------------------------------------------
 st.markdown(
     """
@@ -53,23 +53,28 @@ st.markdown(
     .block-container {
         padding-top: 0rem !important;
         padding-bottom: 2rem !important;
+        max-width: 900px !important; /* コンテナ自体も少し横長に拡張 */
     }
     
     /* スタート画面：掛け軸の高さを回避するためのスペース */
     .title-spacer {
-        height: 220px;
+        height: 200px;
     }
 
-    /* ルール説明カード */
+    /* ルール説明カード（1行で収まるよう横幅を拡張＆ロゴ回避用に上余白を追加） */
     .rule-card {
         background-color: rgba(255, 253, 245, 0.92);
         border: 3px solid #8b261d;
         border-radius: 12px;
-        padding: 20px 24px;
-        margin-bottom: 20px;
+        padding: 20px 30px;
+        margin-top: 40px; /* タイトルロゴとの被りを防ぐ上部マージン */
+        margin-bottom: 25px;
+        width: 100%;
+        max-width: 850px; /* 横幅を広げて1行化 */
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         text-align: center;
         color: #1a1a1a;
+        box-sizing: border-box;
     }
     .rule-card h3 {
         font-size: 1.5rem;
@@ -78,9 +83,10 @@ st.markdown(
         font-weight: bold;
     }
     .rule-card p {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         line-height: 1.8;
         margin-bottom: 8px;
+        white-space: nowrap; /* テキストの勝手な改行を防止 */
     }
 
     /* ゲームプレイ中の読み札カード */
@@ -173,7 +179,7 @@ def save_user_progress(
 
 
 # ---------------------------------------------------------
-# 5. CSVデータ読み込み（※キャッシュ削除でシャッフルに対応）
+# 5. CSVデータ読み込み
 # ---------------------------------------------------------
 def load_questions(csv_file="questions.csv"):
     df = pd.read_csv(csv_file)
@@ -238,13 +244,11 @@ if "game_state" not in st.session_state:
     st.session_state.question_order = []
 
 
-# 新規ゲームスタート時に毎回ランダムに並び替える関数
 def start_new_game():
     st.session_state.current_index = 0
     st.session_state.score = 0
     st.session_state.mistakes = 0
 
-    # 全問題のインデックス（0〜299）を生成してシャッフル
     order = list(range(len(QUESTIONS)))
     random.shuffle(order)
 
@@ -263,13 +267,13 @@ if st.session_state.game_state == "start":
 
     st.markdown('<div class="title-spacer"></div>', unsafe_allow_html=True)
 
+    # 1行で綺麗に収まるようHTML表記を調整
     st.markdown(
         f"""
     <div class="rule-card">
         <h3>【ルール】</h3>
         <p>問題文の<b>「強調された助詞」</b>の種類を見極め、かるたの取り札を選んでください！</p>
-        <p>📚 <b>総問題数</b>: 全 {len(QUESTIONS)} 問 | ⏱️ <b>制限時間</b>: 1問につき <b>10秒</b><br>
-        ❌ <b>お手つき</b>: <b>2回</b>でゲームオーバー | 🏅 <b>段位認定</b>: <b>20問正解ごとに昇段</b></p>
+        <p>📚 <b>総問題数</b>: 全 {len(QUESTIONS)} 問 ｜ ⏱️ <b>制限時間</b>: 1問につき <b>10秒</b> ｜ ❌ <b>お手つき</b>: <b>2回</b>でゲームオーバー ｜ 🏅 <b>段位認定</b>: <b>20問正解ごとに昇段</b></p>
     </div>
     """,
         unsafe_allow_html=True,
@@ -295,12 +299,11 @@ if st.session_state.game_state == "start":
             )
 
             col_resume, col_restart = st.columns(2)
-            if col_resume.button("▶️️ 続きから再開する"):
+            if col_resume.button("▶ 続きから再開する"):
                 st.session_state.current_index = saved["current_index"]
                 st.session_state.score = saved["score"]
                 st.session_state.mistakes = saved["mistakes"]
 
-                # 保存されている出題順を取得（なければ新しくシャッフル）
                 saved_order = saved.get("question_order")
                 if saved_order and len(saved_order) == len(QUESTIONS):
                     st.session_state.question_order = saved_order
@@ -350,7 +353,6 @@ elif st.session_state.game_state == "playing":
         st.session_state.game_state = "game_over"
         st.rerun()
 
-    # 万が一出題リストが空だった場合のガード処理
     if not st.session_state.question_order or len(
         st.session_state.question_order
     ) != len(QUESTIONS):
@@ -358,7 +360,6 @@ elif st.session_state.game_state == "playing":
         random.shuffle(order)
         st.session_state.question_order = order
 
-    # シャッフルされた順番で問題を取り出す
     q_idx = st.session_state.question_order[st.session_state.current_index]
     q = QUESTIONS[q_idx]
 
